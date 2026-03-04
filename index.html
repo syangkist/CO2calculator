@@ -28,7 +28,7 @@ hKm:"Annual km × fuel efficiency × emission factor",hFuel:"CO₂ per litre/kWh
 const EF={grid:0.42,gasoline:2.31,diesel:2.68,lng:2.1,aviShort:0.255,aviLong:0.195,beef:27,pork:12.1,chicken:6.9,gPPM:2.2,tR:0.07,gPS:0.15,ePPM:8,ePM:40,acPPM:6.7,acT:0.10};
 const BM={korea:12.3,global:4.7,fixed:7.14,pop:51.7,natMt:676.6,ndcT:436,ndc18:727};
 const D0={totalKm:12000,fuelEff:10.5,fuelType:"gasoline",carUsers:1,hh:2,pyeong:30,heatTemp:22,coolTemp:26,heatMo:5,coolMo:3,showers:7,beefKg:0.29,porkKg:0.58,chickenKg:0.29};
-const FL={"ICN→NRT 도쿄":{d:1200,t:"s"},"ICN→KIX 오사카":{d:920,t:"s"},"ICN→PVG 상하이":{d:850,t:"s"},"ICN→TPE 타이베이":{d:1500,t:"s"},"ICN→BKK 방콕":{d:3700,t:"s"},"ICN→GUM 괌":{d:3200,t:"s"},"ICN→MNL 마닐라":{d:2600,t:"s"},"ICN→DPS 발리":{d:5200,t:"l"},"ICN→SIN 싱가포르":{d:4600,t:"l"},"ICN→CDG 파리":{d:8950,t:"l"},"ICN→FRA 프랑크푸르트":{d:8550,t:"l"},"ICN→LHR 런던":{d:8850,t:"l"},"ICN→JFK 뉴욕":{d:11050,t:"l"},"ICN→LAX LA":{d:9600,t:"l"},"ICN→SFO 샌프란":{d:9050,t:"l"},"ICN→HNL 하와이":{d:7100,t:"l"},"ICN→SYD 시드니":{d:8350,t:"l"}};
+const FL={"ICN→NRT 도쿄":{d:1200,t:"s"},"ICN→KIX 오사카":{d:882,t:"s"},"ICN→PVG 상하이":{d:850,t:"s"},"ICN→TPE 타이베이":{d:1500,t:"s"},"ICN→BKK 방콕":{d:3700,t:"s"},"ICN→GUM 괌":{d:3200,t:"s"},"ICN→MNL 마닐라":{d:2600,t:"s"},"ICN→DPS 발리":{d:5200,t:"l"},"ICN→SIN 싱가포르":{d:4600,t:"l"},"ICN→CDG 파리":{d:8950,t:"l"},"ICN→FRA 프랑크푸르트":{d:8550,t:"l"},"ICN→LHR 런던":{d:8850,t:"l"},"ICN→JFK 뉴욕":{d:11050,t:"l"},"ICN→LAX LA":{d:9600,t:"l"},"ICN→SFO 샌프란":{d:9050,t:"l"},"ICN→HNL 하와이":{d:7100,t:"l"},"ICN→SYD 시드니":{d:8350,t:"l"}};
 const AVG_AVI=0.45;
 // ═══ Calc ═══
 function cCar(km,ef,f,u){if(!km||!ef)return 0;return(km*((f==="ev"?(EF.grid/ef):((f==="diesel"?EF.diesel:EF.gasoline)/ef))))/1000/Math.max(1,u)}
