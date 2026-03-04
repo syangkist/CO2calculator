@@ -1,6 +1,6 @@
 # 탄소 배출량 계산기 / Carbon Footprint Calculator
-# Built by Claude Opus 4.6 and Claude Sonnet 4.6
-# Not everything is 100% confirmed
+*Built by Claude Opus 4.6 and Claude Sonnet 4.6*
+*Not everything is 100% confirmed*
 
 
 **나의 연간 탄소 발자국을 계산하고, 어디에 집중해야 할지 알아보세요.**  
