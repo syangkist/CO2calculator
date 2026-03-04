@@ -230,9 +230,12 @@ return <div style={{background:`linear-gradient(135deg,${C.cd},${bg2})`,border:`
 <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:5}}>
 <div><div style={{display:"flex",alignItems:"center",gap:4,marginBottom:2}}><span style={{fontSize:17}}>{tr.ic}</span><span style={{fontSize:14,fontWeight:600,color:C.tx}}>{tr.nm}</span></div><div style={{fontSize:11,color:C.td}}>{tr.ds}</div></div>
 <div style={{textAlign:"right",minWidth:48}}><div style={{fontSize:11,color:C.td}}>$/tCO₂</div><div style={{fontSize:19,fontWeight:700,fontFamily:"'JetBrains Mono',monospace",color:tr.$>100?C.or:tr.$>20?C.wn:C.tm}}>{tr.$}</div></div></div>
-<div style={{padding:"5px 7px",background:C.sf,borderRadius:5,marginBottom:5}}>
-<div style={{fontSize:10,color:C.td}}>{t.allO(ctrl.toFixed(1))}</div>
-<div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}><span style={{fontSize:14,fontWeight:700,fontFamily:"'JetBrains Mono',monospace",color:C.tx}}>₩{fK(kw)}</span><span style={{fontSize:12,color:C.td}}>${cu.toFixed(0)}</span></div></div>
+<div style={{padding:"6px 9px",background:C.sf,borderRadius:6,marginBottom:5,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+<span style={{fontSize:11,color:C.td}}>{t.allO(ctrl.toFixed(1))}</span>
+<div style={{display:"flex",alignItems:"center",gap:6}}>
+<span style={{fontSize:14,fontWeight:700,fontFamily:"'JetBrains Mono',monospace",color:C.tx}}>₩{fK(kw)}</span>
+<span style={{fontSize:14,fontWeight:700,fontFamily:"'JetBrains Mono',monospace",color:C.td}}>${cu.toFixed(0)}</span>
+</div></div>
 <div style={{display:"flex",justifyContent:"space-between",fontSize:10}}><span style={{color:C.td}}>{t.dur}: {tr.dr}</span><span style={{color:trCo[tr.tr],fontWeight:600}}>{t.tru}: {trLb[tr.tr]}</span></div>
 <div style={{fontSize:10,color:C.td,marginTop:3,fontStyle:"italic"}}>{tr.nt}</div>
 </div>})}
@@ -243,7 +246,7 @@ return <div style={{background:`linear-gradient(135deg,${C.cd},${bg2})`,border:`
 {(()=>{const a=ctrl*0.7,b=ctrl*0.3,cu2=a*22+b*164,ck=cu2*KW;return <div style={{display:"flex",gap:6}}>
 <div style={{flex:1,padding:"8px",background:C.sf,borderRadius:7}}><div style={{fontSize:10,color:C.td,marginBottom:2}}>🌱 ARR 70%</div><div style={{fontSize:12,color:C.tm}}>{a.toFixed(1)}t×$22</div><div style={{fontSize:14,fontWeight:600,fontFamily:"'JetBrains Mono',monospace"}}>${(a*22).toFixed(0)}</div></div>
 <div style={{flex:1,padding:"8px",background:C.sf,borderRadius:7}}><div style={{fontSize:10,color:C.td,marginBottom:2}}>🔥 Biochar 30%</div><div style={{fontSize:12,color:C.tm}}>{b.toFixed(1)}t×$164</div><div style={{fontSize:14,fontWeight:600,fontFamily:"'JetBrains Mono',monospace"}}>${(b*164).toFixed(0)}</div></div>
-<div style={{flex:1,padding:"8px",background:C.ag,borderRadius:7,border:`1px solid ${C.ad}33`}}><div style={{fontSize:10,color:C.ac,marginBottom:2}}>{t.tot}</div><div style={{fontSize:17,fontWeight:700,fontFamily:"'JetBrains Mono',monospace",color:C.ac}}>₩{fK(ck)}</div><div style={{fontSize:10,color:C.td}}>${cu2.toFixed(0)}</div></div>
+<div style={{flex:1,padding:"8px",background:C.ag,borderRadius:7,border:`1px solid ${C.ad}33`}}><div style={{fontSize:10,color:C.ac,marginBottom:2}}>{t.tot}</div><div style={{fontSize:15,fontWeight:700,fontFamily:"'JetBrains Mono',monospace",color:C.ac}}>₩{fK(ck)} <span style={{color:`${C.ac}99`,marginLeft:2}}>${cu2.toFixed(0)}</span></div></div>
 </div>})()}</div>
 {/* Limits */}
 <div style={{background:C.cd,border:`1px solid ${C.bd}`,borderRadius:13,padding:"12px 14px",marginBottom:10}}>
@@ -251,10 +254,19 @@ return <div style={{background:`linear-gradient(135deg,${C.cd},${bg2})`,border:`
 <div style={{fontSize:11,color:C.tm,lineHeight:1.7}}><strong style={{color:C.tx}}>{t.oL1}</strong></div>
 <div style={{fontSize:11,color:C.tm,lineHeight:1.7,marginTop:5}}>{t.oL2}</div>
 <div style={{fontSize:11,color:C.tm,lineHeight:1.7,marginTop:5}}><strong style={{color:C.tx}}>{t.oL3}</strong></div></div>
-{/* Sources */}
-<div style={{padding:"10px 12px",background:C.sf,borderRadius:10,border:`1px solid ${C.bd}`}}>
-<div style={{fontSize:11,color:C.td,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:6}}>{t.oSrc}</div>
-{[["REDD+ $6","Sylvera 2025"],["REC $8","Green-e / EPA"],["ARR $22","MSCI ARR Index 2025"],["Green H₂ $15","IRENA 2024"],["Biochar $164","Sylvera 2025"],["ERW $200","Senken 2025"],["DAC $500","BCG 2024 · Climeworks"],["Gold Standard","goldstandard.org"],["Climeworks","climeworks.com"],["Patch","patch.io"],[lang==="ko"?"환율":"FX","$1 ≈ ₩"+KW]].map(([l,s],i)=><div key={i} style={{marginBottom:3}}><span style={{fontSize:11,color:C.ac,fontWeight:600}}>{l}: </span><span style={{fontSize:10,color:C.td}}>{s}</span></div>)}
+{/* Purchase Links & Sources */}
+<div style={{padding:"12px",background:C.cd,borderRadius:10,border:`1px solid ${C.bd}`}}>
+<div style={{fontSize:11,color:C.td,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:8}}>🛒 {lang==="ko"?"개인 구매 가능한 플랫폼":"Where individuals can buy"}</div>
+<div style={{display:"flex",flexDirection:"column",gap:6,marginBottom:12}}>
+<a href="https://www.goldstandard.org/take-action/offset-your-emissions" target="_blank" style={{padding:"8px 10px",background:C.sf,borderRadius:6,textDecoration:"none",display:"flex",justifyContent:"space-between",alignItems:"center",border:`1px solid ${C.bd}`}}>
+<span style={{fontSize:13,color:C.tx,fontWeight:600}}>🌱 Gold Standard <span style={{fontSize:11,color:C.td,fontWeight:400}}>(ARR, REDD+)</span></span><span style={{color:C.ac}}>↗</span></a>
+<a href="https://climeworks.com/subscriptions" target="_blank" style={{padding:"8px 10px",background:C.sf,borderRadius:6,textDecoration:"none",display:"flex",justifyContent:"space-between",alignItems:"center",border:`1px solid ${C.bd}`}}>
+<span style={{fontSize:13,color:C.tx,fontWeight:600}}>⚙️ Climeworks <span style={{fontSize:11,color:C.td,fontWeight:400}}>(DAC)</span></span><span style={{color:C.ac}}>↗</span></a>
+<a href="https://ecologi.com/impact-shop" target="_blank" style={{padding:"8px 10px",background:C.sf,borderRadius:6,textDecoration:"none",display:"flex",justifyContent:"space-between",alignItems:"center",border:`1px solid ${C.bd}`}}>
+<span style={{fontSize:13,color:C.tx,fontWeight:600}}>🔥 Ecologi <span style={{fontSize:11,color:C.td,fontWeight:400}}>(Biochar & Portfolios)</span></span><span style={{color:C.ac}}>↗</span></a>
+</div>
+<div style={{fontSize:11,color:C.td,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:6}}>📚 {lang==="ko"?"시장 가격 출처":"Market Price Sources"}</div>
+{[["REDD+ $6","Sylvera"],["REC $8","Green-e"],["ARR $22","MSCI ARR Index"],["Green H₂ $15","IRENA (B2B Only)"],["Biochar $164","Sylvera"],["ERW $200","Senken (B2B/Funds)"],["DAC $500","Climeworks"]].map(([l,s],i)=><div key={i} style={{marginBottom:3}}><span style={{fontSize:11,color:C.tm,fontWeight:600}}>{l}: </span><span style={{fontSize:10,color:C.td}}>{s}</span></div>)}
 </div></div>})()}
 </div>
 {/* TAB BAR */}
