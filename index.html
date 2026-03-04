@@ -54,7 +54,7 @@ function toggleLang(){const nl=lang==="ko"?"en":"ko";try{localStorage.setItem("c
 const[tab,setTab]=useState("ov");const[an,setAn]=useState(true);
 const[totalKm,sKm]=useState(D0.totalKm);const[fuelEff,sFE]=useState(D0.fuelEff);const[fuelType,sFT]=useState(D0.fuelType);const[carUsers,sCU]=useState(D0.carUsers);
 const[hh,sHH]=useState(D0.hh);const[py,sPy]=useState(D0.pyeong);const[hT,sHT]=useState(D0.heatTemp);const[cT,sCT]=useState(D0.coolTemp);const[hMo,sHMo]=useState(D0.heatMo);const[cMo,sCMo]=useState(D0.coolMo);const[shw,sShw]=useState(D0.showers);
-const[flights,sFl]=useState([]);const[nfR,sNR]=useState(Object.keys(FL)[0]);const[nfT,sNT]=useState(1);
+const[flights,sFl]=useState([{id: Date.now(), route: "ICN→KIX 오사카", trips: 1}]);const[nfR,sNR]=useState(Object.keys(FL)[0]);const[nfT,sNT]=useState(1);
 const[bK,sBK]=useState(D0.beefKg);const[pK,sPK]=useState(D0.porkKg);const[cK,sCK]=useState(D0.chickenKg);
 const isEV=fuelType==="ev";
 function hFT(v){sFT(v);if(v==="ev")sFE(5.5);else if(v==="diesel")sFE(12);else sFE(10.5)}
