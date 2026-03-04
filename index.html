@@ -130,7 +130,7 @@ return <div style={{background:`linear-gradient(135deg,${C.cd},${bg2})`,border:`
 <div style={{fontSize:15,color:C.tm}}>{isRed?t.natR:t.natI}</div>
 <div style={{fontSize:12,color:C.td}}>{isRed?"":"+​"}{natMt.toFixed(1)} Mt / {BM.natMt} Mt</div>
 </div></div>
-<Bar v={natPct} mx={20} c={clr} h={7}/>
+<Bar v={natPct} mx={40} c={clr} h={7}/>
 <div style={{marginTop:8,fontSize:14,color:C.td,lineHeight:1.5}}>
 {t.ndc(BM.ndc18,BM.ndcT)}
 {isRed&&<><br/>{t.ndcC(ndcGap.toFixed(0),natMt.toFixed(1),(natMt/ndcGap*100).toFixed(1))}</>}
@@ -145,7 +145,7 @@ return <div style={{background:`linear-gradient(135deg,${C.cd},${bg2})`,border:`
 <div style={{marginBottom:10}}><label style={{fontSize:14,color:C.tm,display:"block",marginBottom:3}}>{t.fuel}</label>
 <select value={fuelType} onChange={e=>hFT(e.target.value)}><option value="gasoline">{t.gas} — {EF.gasoline} kgCO₂/L</option><option value="diesel">{t.dsl} — {EF.diesel} kgCO₂/L</option><option value="ev">{t.ev} — {EF.grid} kgCO₂/kWh</option></select>
 <div style={{fontSize:10,color:C.td,marginTop:3}}>{t.hFuel}</div></div>
-<Sl label={isEV?t.evE:t.fe} value={fuelEff} onChange={sFE} min={isEV?3:5} max={isEV?9:20} step={0.5} unit={isEV?"km/kWh":"km/L"} info={t.hFE}/>
+<Sl label={isEV?t.evE:t.fe} value={fuelEff} onChange={sFE} min={isEV?3:5} max={isEV?10:30} step={0.5} unit={isEV?"km/kWh":"km/L"} info={t.hFE}/>
 <Sl label={t.pass} value={carUsers} onChange={sCU} min={1} max={5} step={1} unit={lang==="ko"?"명":""} info={t.hPass}/>
 </Sec>
 <Sec title={t.ho} icon="🏠" kg={housing*1000} dkg={(housing-bHo)*1000}>
