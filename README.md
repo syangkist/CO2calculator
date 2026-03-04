@@ -1,5 +1,6 @@
 # 탄소 배출량 계산기 / Carbon Footprint Calculator
 *Built by Claude Opus 4.6 and Claude Sonnet 4.6*
+
 *Not everything is 100% confirmed*
 
 
