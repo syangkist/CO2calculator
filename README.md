@@ -1,21 +1,23 @@
-# 🌿 탄소 배출량 계산기 / Carbon Footprint Calculator
+# 탄소 배출량 계산기 / Carbon Footprint Calculator
+# Built by Claude Opus 4.6 and Claude Sonnet 4.6
+# Not everything is 100% confirmed
+
 
 **나의 연간 탄소 발자국을 계산하고, 어디에 집중해야 할지 알아보세요.**  
 *Calculate your annual carbon footprint and find out where to focus.*
 
-🔗 **Live demo:** `https://[your-username].github.io/carbon-calculator`
 
 ---
 
-## 📱 Features / 주요 기능
+## Features / 주요 기능
 
 | Tab | Korean | Description |
 |-----|--------|-------------|
-| ◉ Overview | 개요 | Compare your footprint vs Korea & world average |
-| ⚙ My Data | 입력 | Enter your transport, housing, flights & diet |
-| ⚡ Levers | 감축 | See which actions move the most tonnes |
-| 🌿 Small Steps | 작은 실천 | Everyday actions ranked by impact |
-| ⊕ Offset | 상쇄 | Offset costs and portfolio examples (2025 market prices) |
+| Overview | 개요 | Compare your footprint vs Korea & world average |
+| My Data | 입력 | Enter your transport, housing, flights & diet |
+| Levers | 감축 | See which actions move the most tonnes |
+| Small Steps | 작은 실천 | Everyday actions ranked by impact |
+| Offset | 상쇄 | Offset costs and portfolio examples (2025 market prices) |
 
 **Other features:**
 - 🇰🇷 / EN bilingual toggle (persists across sessions)
@@ -26,7 +28,7 @@
 
 ---
 
-## 🧮 Methodology / 계산 방법
+## Methodology / 계산 방법
 
 All emissions are in **tCO₂e per person per year**.
 
@@ -48,7 +50,7 @@ All emissions are in **tCO₂e per person per year**.
 
 ---
 
-## 🚀 Usage / 사용법
+## Usage / 사용법
 
 No installation or build step required. Just open `index.html` in a browser.
 
@@ -65,18 +67,17 @@ To deploy on GitHub Pages:
 
 ---
 
-## 🗂 Files
+## Files
 
 ```
 carbon-calculator/
 ├── index.html          # Self-contained app (React via CDN, no build needed)
-├── carbon-app-v12.jsx  # React source component
 └── README.md
 ```
 
 ---
 
-## 📚 Data Sources
+## Data Sources (Not verified, it came from the Claude Opus 4.6)
 
 - **Korea average (12.3 t):** Worldometer 2022, Global Carbon Project 2023
 - **World average (4.7 t):** Global Carbon Project 2023
@@ -98,7 +99,7 @@ carbon-calculator/
 
 ## 👤 Author
 
-**Sungeun Jeon** — Principal Research Scientist, KIST  
+**Sungeun Yang** — Principal Research Scientist, KIST  
 Hydrogen Energy Materials Research Division · SSEMS Lab  
 Seoul, Korea
 
@@ -106,4 +107,4 @@ Seoul, Korea
 
 ## 📄 License
 
-MIT — free to use, share, and adapt with attribution.
+CC BY 4.0
