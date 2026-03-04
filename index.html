@@ -29,7 +29,7 @@ const AVG_AVI=0.45;
 function cCar(km,ef,f,u){if(!km||!ef)return 0;return(km*((f==="ev"?(EF.grid/ef):((f==="diesel"?EF.diesel:EF.gasoline)/ef))))/1000/Math.max(1,u)}
 function cHeat(py,t,mo,hh){return(py*EF.gPPM*mo*Math.max(0.3,1+(t-22)*EF.tR)*EF.lng)/1000/Math.max(1,hh)}
 function cHW(s,hh){return(s*52*EF.gPS*EF.lng)/1000}
-function cElec(py,ct,cm,hh){return((py*EF.ePPM*12+py*EF.acPPM*cm*Math.max(0.5,1+(26-ct)*EF.acT))*EF.grid)/1000/Math.max(1,hh)}
+function cElec(py,ct,cm,hh){return((py*EF.ePPM*12+py*EF.acPPM*cm*Math.max(0.1,1+(26-ct)*EF.acT))*EF.grid)/1000/Math.max(1,hh)}
 function cFl(r,n){const f=FL[r];return f?(f.d*2*(f.t==="l"?EF.aviLong:EF.aviShort)*n)/1000:0}
 function cDi(b,p,c){return((b*EF.beef+p*EF.pork+c*EF.chicken)*52)/1000}
 // ═══ Colors ═══
