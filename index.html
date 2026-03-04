@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>탄소 배출량 계산기</title>
+<meta name="description" content="나의 연간 탄소 발자국을 계산하고, 어디에 집중해야 할지 알아보세요."/>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>*{margin:0;padding:0;box-sizing:border-box;}body{background:#060b09;}</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+const { useState, useMemo } = React;
+// ═══ i18n ═══
+const T={ko:{nm:"탄소 배출량 계산기",sub:"어디에 집중해야 할까?",tpy:"tCO₂e/년",fp:"나의 연간 탄소 발자국",vK:"🇰🇷 한국 대비",vW:"🌍 세계 대비",tOv:"개요",tMy:"입력",tLv:"감축",tNs:"작은 실천",tOf:"상쇄",cmp:"총 배출량 비교",wrld:"🌍 세계",kr:"🇰🇷 한국",me:"나",sect:"나의 CO₂ 배출 분야",sectD:"실선=나 · 점선=한국 평균 · 우측=감축량",sectI:(a,b,c,d)=>`이 네 분야가 통제 가능 배출의 ~100%: 교통 ${a}% · 주거 ${b}% · 식단 ${c}% · 항공 ${d}%`,sectS:"출처: Climate Transparency 2022 + KREI·OECD 추정",tr:"교통",ho:"주거",av:"항공",di:"식단",inf:"⚙️ 인프라/산업 (통제 불가)",kA:"한국 평균",aA:"≈ 평균",myRed:v=>`나의 감축: ${v}t/년`,myInc:v=>`나의 추가 배출: ${v}t/년`,allK:p=>`모든 한국인(${p}백만명)이 나처럼 생활한다면`,natR:"국가 탄소 배출량 감축",natI:"국가 탄소 배출량 증가",ndc:(a,b)=>`🎯 NDC 목표: 2030년까지 ${a}→${b} Mt (40% 감축)`,ndcC:(n,m,p)=>`필요 감축량: ${n} Mt — 나의 기여: ${m} Mt (${p}%)`,adj:"입력 탭에서 슬라이더를 조정해 감축 효과를 확인해보세요.",init:"초기값은 한국 평균. 슬라이더 조정 → 상단 발자국 실시간 변동.",aKm:"연간 총 주행거리",fuel:"연료",fe:"연비",evE:"전비",pass:"탑승 인원",gas:"휘발유",dsl:"경유",ev:"전기차 (EV)",hhS:"세대원 수",py:"평수",ht:"🌡️ 난방",cl:"❄️ 냉방",hw:"🚿 온수",hTm:"난방 온도",hMo:"난방 기간",cTm:"냉방 온도",cMo:"냉방 기간",shw:"샤워 (1인, 10분)",pw:"회/주",mo:"개월",avA:k=>`한국인 평균: ~${k}kg/yr (OECD 2024)`,rt:"왕복",add:"+추가",pyr:"회/년",meat:"식단 (주간 1인 육류)",mB:"📦 소매 중량 (정육) — 마트 구매 무게 기준.",bf:"소고기",pk:"돼지고기",ck:"닭고기",src:"📚 출처",lvT:"톤을 움직이는 행동",lvS:"— 그램이 아닙니다",evSw:"전기차 전환",canFl:"항공 취소",h20:"난방 20°C",bfH:"적색육 50%↓",ssT:"🌿 작은 실천",ssS:"일상의 탄소 절감 행동들",ssD:"📋 일상의 작은 변화들 (연간 효과)",ssB:"⚖️ 작은 실천 vs 큰 변화",ssM:"모든 실천은 의미 있습니다. 동시에 교통·난방·냉방·식단의 조정이 훨씬 큰 변화를 만듭니다.",ssA:"작은 실천도 하면서, 큰 변화에도 함께 집중",sL:"작은 실천",bL:"큰 변화",oT:"⊕ 상쇄 (Offset)",oD:"줄일 수 없는 배출을 상쇄하는 방법과 실제 비용.",oP:"📐 원칙: 감축 먼저 → 나머지 상쇄",oPD:"줄일 수 있는 것을 돈으로 해결하면 동기가 사라집니다.",ctrl:"통제 가능 배출",aRd:"이미 줄인 양",oC:"💰 상쇄 비용 비교 (2025 시장가)",allO:v=>`전량 (${v}t)`,dur:"내구성",tru:"신뢰도",pfT:"🎯 포트폴리오 예시",pfD:v=>`${v}t을 70% 조림 + 30% 바이오차 혼합 시:`,tot:"합계",oLim:"⚠️ 상쇄의 한계",oL1:"상쇄 ≠ 배출 취소. CO₂는 즉시 대기에 들어가고, 상쇄는 시간차로 작동합니다.",oL2:"신뢰도: DAC > 바이오차 > 촉진풍화 > 조림 > REC/H₂ > REDD+",oL3:"Gold Standard / Verra VCS 인증만 구매하세요.",oSrc:"📚 출처 & 구매처",
+hKm:"연간 총 주행거리 × 연비 × 연료 배출계수로 계산",hFuel:"연료 종류별 CO₂ 배출계수 — 전기차는 한국 전력망 탄소강도(420g/kWh) 적용",hFE:"연비가 높을수록 연료 소비 ↓, 배출량 ↓",hPass:"가족·카풀 동승 시 1인당 배출량으로 나눔. 2명 동승 = 배출량 절반",hHH:"주거 배출량을 세대원 수로 나눔. 1인당 부담 반영",hPy:"면적이 클수록 난방·냉방·조명 에너지 ↑",hHT:(pct)=>`현재 설정 기준 1°C 올릴 때마다 난방 배출 약 ${pct}% 증가 (온도-가스소비 선형 모델)`,hHMo:"난방 기간이 길수록 가스 소비 정비례 증가",hCT:(pct)=>`1°C 낮출 때마다 냉방 전력 약 ${pct}% 증가 (에어컨 효율 모델)`,hCMo:"냉방 기간이 길수록 전력 소비 정비례 증가",hShw:"1회 10분 샤워 기준. 온수 가열에 도시가스 사용 가정. 세대원 전체 공유 비용",hBf:"소고기는 돼지고기의 2.2배, 닭고기의 3.9배 탄소 집약적 (IPCC 기준)",hPk:"돼지고기는 중간 수준. 주 1kg → 연 630kg CO₂e",hCk:"가금류는 육류 중 탄소 발자국이 가장 낮음"},
+en:{nm:"Carbon Footprint Calculator",sub:"Where should you focus?",tpy:"tCO₂e/yr",fp:"My annual carbon footprint",vK:"🇰🇷 vs Korea",vW:"🌍 vs World",tOv:"Overview",tMy:"My Data",tLv:"Levers",tNs:"Small Steps",tOf:"Offset",cmp:"Total emissions comparison",wrld:"🌍 World",kr:"🇰🇷 Korea",me:"Me",sect:"My CO₂ sectors",sectD:"Solid=mine · Dashed=Korea avg",sectI:(a,b,c,d)=>`These 4 sectors = ~100% controllable: Transport ${a}% · Housing ${b}% · Diet ${c}% · Aviation ${d}%`,sectS:"Source: Climate Transparency 2022 + KREI·OECD",tr:"Transport",ho:"Housing",av:"Aviation",di:"Diet",inf:"⚙️ Infrastructure (uncontrollable)",kA:"Korea avg",aA:"≈ avg",myRed:v=>`My reduction: ${v}t/yr`,myInc:v=>`My excess: ${v}t/yr`,allK:p=>`If all Koreans (${p}M) lived like me`,natR:"National emissions reduction",natI:"National emissions increase",ndc:(a,b)=>`🎯 NDC: ${a}→${b} Mt by 2030 (40% cut)`,ndcC:(n,m,p)=>`Gap: ${n} Mt — My share: ${m} Mt (${p}%)`,adj:"Adjust sliders in My Data to see effects.",init:"Defaults=Korean avg. Adjust → header updates live.",aKm:"Annual distance",fuel:"Fuel",fe:"Efficiency",evE:"EV eff.",pass:"Passengers",gas:"Gasoline",dsl:"Diesel",ev:"EV (Electric)",hhS:"Household",py:"Size (pyeong)",ht:"🌡️ Heating",cl:"❄️ Cooling",hw:"🚿 Hot water",hTm:"Heat temp",hMo:"Heat months",cTm:"Cool temp",cMo:"Cool months",shw:"Showers (10min)",pw:"/wk",mo:"months",avA:k=>`Korea avg: ~${k}kg/yr (OECD 2024)`,rt:"Round trip",add:"+Add",pyr:"trips/yr",meat:"Diet (weekly meat)",mB:"📦 Retail weight — supermarket purchase weight.",bf:"Beef",pk:"Pork",ck:"Chicken",src:"📚 Sources",lvT:"Actions that move tonnes",lvS:"— not grams",evSw:"Switch to EV",canFl:"Cancel flights",h20:"Heat at 20°C",bfH:"Halve red meat",ssT:"🌿 Small Steps",ssS:"Everyday carbon reduction actions",ssD:"📋 Small daily changes (annual impact)",ssB:"⚖️ Small steps vs Big changes",ssM:"Every action matters. Transport, heating, cooling & diet adjustments create much larger changes.",ssA:"Keep small steps, focus on big changes too",sL:"Small step",bL:"Big change",oT:"⊕ Offset",oD:"Methods and real costs to offset unavoidable emissions.",oP:"📐 Reduce first → Offset the rest",oPD:"Paying to offset reducible emissions kills motivation.",ctrl:"Controllable",aRd:"Already reduced",oC:"💰 Offset costs (2025 market)",allO:v=>`All (${v}t)`,dur:"Durability",tru:"Trust",pfT:"🎯 Portfolio example",pfD:v=>`${v}t with 70% ARR + 30% Biochar:`,tot:"Total",oLim:"⚠️ Offset limitations",oL1:"Offset ≠ cancellation. CO₂ enters atmosphere immediately; offsets have a time lag.",oL2:"Trust: DAC > Biochar > ERW > ARR > REC/H₂ > REDD+",oL3:"Only buy Gold Standard / Verra VCS certified.",oSrc:"📚 Sources & where to buy",
+hKm:"Annual km × fuel efficiency × emission factor",hFuel:"CO₂ per litre/kWh by fuel type — EV uses Korea grid intensity (420g/kWh)",hFE:"Better efficiency = less fuel burned = less CO₂",hPass:"Divides emissions by occupants — carpooling with 2 people halves your share",hHH:"Housing costs split equally among occupants — reflects per-person share",hPy:"More floor area = more energy for heating, cooling & lighting",hHT:(pct)=>`Each +1°C raises heating emissions ~${pct}% (linear gas-consumption model)`,hHMo:"Longer heating season = proportionally more gas consumed",hCT:(pct)=>`Each −1°C raises cooling power ~${pct}% (AC efficiency model)`,hCMo:"Longer cooling season = proportionally more electricity consumed",hShw:"Based on 10-min shower. Assumes gas water heater. Shared across household",hBf:"Beef is 2.2× pork and 3.9× chicken in carbon intensity (IPCC)",hPk:"Pork is mid-range. 1kg/wk → ~630kg CO₂e/yr",hCk:"Poultry has the lowest footprint among common meats"}};
+// ═══ Constants ═══
+const EF={grid:0.42,gasoline:2.31,diesel:2.68,lng:2.1,aviShort:0.255,aviLong:0.195,beef:27,pork:12.1,chicken:6.9,gPPM:2.2,tR:0.07,gPS:0.15,ePPM:8,ePM:40,acPPM:6.7,acT:0.10};
+const BM={korea:12.3,global:4.7,fixed:6,pop:51.7,natMt:676.6,ndcT:436,ndc18:727};
+const D0={totalKm:12000,fuelEff:10.5,fuelType:"gasoline",carUsers:1,hh:2,pyeong:30,heatTemp:22,coolTemp:26,heatMo:5,coolMo:3,showers:7,beefKg:0.29,porkKg:0.58,chickenKg:0.29};
+const FL={"ICN→NRT 도쿄":{d:1200,t:"s"},"ICN→KIX 오사카":{d:920,t:"s"},"ICN→PVG 상하이":{d:850,t:"s"},"ICN→TPE 타이베이":{d:1500,t:"s"},"ICN→BKK 방콕":{d:3700,t:"s"},"ICN→GUM 괌":{d:3200,t:"s"},"ICN→MNL 마닐라":{d:2600,t:"s"},"ICN→DPS 발리":{d:5200,t:"l"},"ICN→SIN 싱가포르":{d:4600,t:"l"},"ICN→CDG 파리":{d:8950,t:"l"},"ICN→FRA 프랑크푸르트":{d:8550,t:"l"},"ICN→LHR 런던":{d:8850,t:"l"},"ICN→JFK 뉴욕":{d:11050,t:"l"},"ICN→LAX LA":{d:9600,t:"l"},"ICN→SFO 샌프란":{d:9050,t:"l"},"ICN→HNL 하와이":{d:7100,t:"l"},"ICN→SYD 시드니":{d:8350,t:"l"}};
+const AVG_AVI=0.45;
+// ═══ Calc ═══
+function cCar(km,ef,f,u){if(!km||!ef)return 0;return(km*((f==="ev"?(EF.grid/ef):((f==="diesel"?EF.diesel:EF.gasoline)/ef))))/1000/Math.max(1,u)}
+function cHeat(py,t,mo,hh){return(py*EF.gPPM*mo*Math.max(0.3,1+(t-22)*EF.tR)*EF.lng)/1000/Math.max(1,hh)}
+function cHW(s,hh){return(s*52*EF.gPS*EF.lng)/1000/Math.max(1,hh)}
+function cElec(py,ct,cm,hh){return((py*EF.ePPM*12+py*EF.acPPM*cm*Math.max(0.5,1+(26-ct)*EF.acT))*EF.grid)/1000/Math.max(1,hh)}
+function cFl(r,n){const f=FL[r];return f?(f.d*2*(f.t==="l"?EF.aviLong:EF.aviShort)*n)/1000:0}
+function cDi(b,p,c){return((b*EF.beef+p*EF.pork+c*EF.chicken)*52)/1000}
+// ═══ Colors ═══
+const C={bg:"#060b09",sf:"#0e1613",cd:"#111c17",bd:"#1a2e25",ac:"#22c55e",ad:"#15803d",ag:"rgba(34,197,94,0.12)",dn:"#ef4444",dd:"#991b1b",dg:"rgba(239,68,68,0.08)",wn:"#eab308",bu:"#3b82f6",pu:"#a78bfa",pk:"#f472b6",or:"#f97316",tx:"#dce8e1",tm:"#7a9488",td:"#4a6358"};
+// ═══ Global Styles ═══
+const gStyle=`select,input[type=range]{width:100%;box-sizing:border-box;}select{background:#0e1613;color:#dce8e1;border:1px solid #1a2e25;border-radius:6px;padding:6px 10px;font-size:14px;outline:none;}select option{background:#0e1613;color:#dce8e1;}input[type=range]{-webkit-appearance:none;appearance:none;height:20px;background:transparent;outline:none;padding:0;margin:6px 0;cursor:pointer;}input[type=range]::-webkit-slider-container{height:20px;}input[type=range]::-webkit-slider-runnable-track{height:6px;border-radius:3px;background:#1a2e25;}input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:20px;height:20px;border-radius:50%;background:#22c55e;cursor:pointer;margin-top:-7px;box-shadow:0 0 8px #22c55e66;}input[type=range]::-moz-range-track{height:6px;border-radius:3px;background:#1a2e25;}input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:#22c55e;cursor:pointer;border:none;box-shadow:0 0 8px #22c55e66;}@keyframes fi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}`;
+// ═══ UI Components ═══
+function Bar({v,mx,c=C.ac,h=6}){return <div style={{width:"100%",height:h,borderRadius:h,background:C.sf,overflow:"hidden"}}><div style={{width:`${mx>0?Math.min(v/mx*100,100):0}%`,height:"100%",borderRadius:h,background:`linear-gradient(90deg,${c}cc,${c})`,boxShadow:`0 0 8px ${c}33`,transition:"width 0.5s"}}/></div>}
+function Dlt({kg}){if(Math.abs(kg)<0.5)return null;const u=kg>0;return <span style={{display:"inline-flex",alignItems:"center",gap:1,fontSize:11,fontWeight:600,fontFamily:"monospace",color:u?C.dn:C.ac,background:u?`${C.dn}15`:C.ag,padding:"1px 5px",borderRadius:4,whiteSpace:"nowrap"}}>{u?"▲":"▼"}{Math.abs(kg).toFixed(0)}kg</span>}
+function Sl({label,value,onChange,min,max,step=1,unit="",info,dkg}){const d=step>=1?value.toLocaleString():value.toFixed(step<0.1?2:1);return <div style={{marginBottom:13}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:3}}><label style={{fontSize:14,color:C.tm}}>{label}</label><div style={{display:"flex",alignItems:"center",gap:4}}>{dkg!==undefined&&<Dlt kg={dkg}/>}<span style={{fontSize:16,fontWeight:600,color:C.tx,fontFamily:"'JetBrains Mono',monospace"}}>{d}<span style={{fontSize:11,color:C.td,marginLeft:1}}>{unit}</span></span></div></div><input type="range" min={min} max={max} step={step} value={value} onChange={e=>onChange(parseFloat(e.target.value))}/>{info&&<div style={{fontSize:11,color:C.td,marginTop:2}}>{info}</div>}</div>}
+function Sec({title,icon,children,kg,dkg}){return <div style={{background:C.cd,border:`1px solid ${C.bd}`,borderRadius:13,padding:"13px 15px",marginBottom:10}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:11}}><div style={{display:"flex",alignItems:"center",gap:6}}><span style={{fontSize:19}}>{icon}</span><span style={{fontSize:16,fontWeight:600,color:C.tx}}>{title}</span></div>{kg!==undefined&&<div style={{display:"flex",alignItems:"center",gap:4}}>{dkg!==undefined&&<Dlt kg={dkg}/>}<span style={{fontSize:16,fontWeight:700,fontFamily:"'JetBrains Mono',monospace",color:C.ac}}>{kg.toFixed(0)}<span style={{fontSize:11,color:C.td}}>kg</span></span></div>}</div>{children}</div>}
+function SR({icon,label,mine,avg,maxVal,color,reduction,t}){const df=mine-avg;return <div style={{marginBottom:10}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:3}}><span style={{fontSize:17,color:C.tm}}>{icon} {label}</span><div style={{display:"flex",alignItems:"center",gap:5}}>{reduction>0.5&&<span style={{fontSize:12,color:C.ac,fontWeight:600,background:C.ag,padding:"1px 4px",borderRadius:3}}>-{reduction.toFixed(0)}kg</span>}<span style={{fontSize:18,fontWeight:700,fontFamily:"'JetBrains Mono',monospace",color}}>{(mine/1000).toFixed(2)}t</span></div></div><div style={{position:"relative",height:14,marginBottom:2}}><div style={{position:"absolute",top:0,left:0,width:"100%",height:14,borderRadius:3,background:C.sf}}/>{avg>0&&<div style={{position:"absolute",top:0,left:0,width:`${Math.min(avg/maxVal*100,100)}%`,height:14,borderRadius:3,background:`${color}25`,borderRight:`2px dashed ${color}55`}}/>}<div style={{position:"absolute",top:2,left:0,width:`${Math.min(mine/maxVal*100,100)}%`,height:10,borderRadius:2,background:`linear-gradient(90deg,${color}aa,${color})`,boxShadow:`0 0 8px ${color}33`,transition:"width 0.5s"}}/></div><div style={{display:"flex",justifyContent:"space-between",fontSize:12,color:C.td}}><span>{t.kA}: {(avg/1000).toFixed(2)}t</span><span style={{color:df>10?C.dn:df<-10?C.ac:C.td}}>{df>10?`+${df.toFixed(0)}kg`:df<-10?`${df.toFixed(0)}kg`:t.aA}</span></div></div>}
+// ═══ MAIN APP ═══
+function App(){
+const[lang,setLang]=useState(()=>{try{return localStorage.getItem("cf_lang")||"ko";}catch{return"ko";}});const t=T[lang];
+function toggleLang(){const nl=lang==="ko"?"en":"ko";try{localStorage.setItem("cf_lang",nl);}catch{}setLang(nl);}
+const[tab,setTab]=useState("ov");const[an,setAn]=useState(true);
+const[totalKm,sKm]=useState(D0.totalKm);const[fuelEff,sFE]=useState(D0.fuelEff);const[fuelType,sFT]=useState(D0.fuelType);const[carUsers,sCU]=useState(D0.carUsers);
+const[hh,sHH]=useState(D0.hh);const[py,sPy]=useState(D0.pyeong);const[hT,sHT]=useState(D0.heatTemp);const[cT,sCT]=useState(D0.coolTemp);const[hMo,sHMo]=useState(D0.heatMo);const[cMo,sCMo]=useState(D0.coolMo);const[shw,sShw]=useState(D0.showers);
+const[flights,sFl]=useState([]);const[nfR,sNR]=useState(Object.keys(FL)[0]);const[nfT,sNT]=useState(1);
+const[bK,sBK]=useState(D0.beefKg);const[pK,sPK]=useState(D0.porkKg);const[cK,sCK]=useState(D0.chickenKg);
+const isEV=fuelType==="ev";
+function hFT(v){sFT(v);if(v==="ev")sFE(5.5);else if(v==="diesel")sFE(12);else sFE(10.5)}
+const transport=cCar(totalKm,fuelEff,fuelType,carUsers),heating=cHeat(py,hT,hMo,hh),hotW=cHW(shw,hh),elec=cElec(py,cT,cMo,hh);
+const housing=heating+hotW+elec,avi=flights.reduce((s,f)=>s+cFl(f.route,f.trips),0),diet=cDi(bK,pK,cK);
+const ctrl=transport+housing+avi+diet,total=BM.fixed+ctrl;
+const bTr=cCar(D0.totalKm,D0.fuelEff,D0.fuelType,D0.carUsers),bHo=cHeat(D0.pyeong,D0.heatTemp,D0.heatMo,D0.hh)+cHW(D0.showers,D0.hh)+cElec(D0.pyeong,D0.coolTemp,D0.coolMo,D0.hh),bDi=cDi(D0.beefKg,D0.porkKg,D0.chickenKg),bTot=BM.fixed+bTr+bHo+bDi+AVG_AVI;
+const rTr=Math.max(0,(bTr-transport)*1000),rHo=Math.max(0,(bHo-housing)*1000),rDi=Math.max(0,(bDi-diet)*1000),rAv=Math.max(0,(AVG_AVI-avi)*1000);
+const totRed=bTot-total,isRed=totRed>0,absRed=Math.abs(totRed),natMt=absRed*BM.pop,natPct=(natMt/BM.natMt)*100,ndcGap=BM.natMt-BM.ndcT;
+const cBase=bTr+bHo+bDi+AVG_AVI,pT=(bTr/cBase*100).toFixed(0),pH=(bHo/cBase*100).toFixed(0),pD=(bDi/cBase*100).toFixed(0),pA=(AVG_AVI/cBase*100).toFixed(0);
+const evA=cCar(totalKm,5.5,"ev",carUsers);
+const levers=useMemo(()=>[{l:t.evSw,s:transport-evA,c:C.ac,i:"🔋",d:"ICE→EV"},{l:t.canFl,s:avi,c:C.bu,i:"✈️",d:flights.length?`${flights.length}`:"-"},{l:t.h20,s:heating-cHeat(py,20,hMo,hh),c:C.wn,i:"🌡️",d:`${hT}→20°C`},{l:t.bfH,s:diet-cDi(bK*0.5,pK,cK),c:C.pk,i:"🥩",d:"50%↓"}].filter(x=>x.s>0.005).sort((a,b)=>b.s-a.s),[transport,evA,avi,flights,heating,diet,py,hT,hMo,hh,bK,pK,cK,t]);
+const dK=total-BM.korea,dG=total-BM.global,mx=Math.max(total,BM.korea)*1.1,sMax=Math.max(transport,housing,avi,diet,bTr,bHo,bDi,AVG_AVI)*1000*1.15;
+const d10=(10*(EF.gasoline/10.5)),h1C=(heating-cHeat(py,hT-1,hMo,hh))*1000,c1C=(cElec(py,cT,cMo,hh)-cElec(py,cT+1,cMo,hh))*1000,bfHkg=(diet-cDi(bK*0.5,pK,cK))*1000;
+function sw(id){setAn(false);setTimeout(()=>{setTab(id);setAn(true)},100)}
+const TABS=[{id:"ov",l:t.tOv,i:"◉"},{id:"my",l:t.tMy,i:"⚙"},{id:"lv",l:t.tLv,i:"⚡"},{id:"ns",l:t.tNs,i:"🌿"},{id:"of",l:t.tOf,i:"⊕"}];
+// Small steps data
+const steps=lang==="ko"?[{a:"의류 구매 줄이기",k:25,n:"연 5벌 덜 구매 (~5kg CO₂/벌)",s:"Nature Clim. Change 2018"},{a:"영상 스트리밍 줄이기",k:18,n:"하루 1시간 줄이기 (HD)",s:"IEA 2022"},{a:"TV 크기 줄이기",k:15,n:"65→43인치 (~36kWh/yr 차이)",s:"Energy Star"},{a:"비닐봉지 거절",k:12,n:"매일 1회 거절",s:"Zero Waste Europe"},{a:"분리수거",k:12,n:"매일 1개 플라스틱",s:"EPA"},{a:"텀블러 사용",k:9.9,n:"매일 1잔 (일회용컵 대체)",s:"UNEP 2021"},{a:"전등 끄기 (1시간)",k:9.1,n:"매일 1시간 소등",s:"KEA"},{a:"인쇄 줄이기",k:5.5,n:"주 10장 → 디지털 전환",s:"Two Sides 2020"},{a:"AI 사용 (ChatGPT)",k:0.7,n:"하루 10회 질문",s:"Ritchie 2025"},{a:"충전기 빼기",k:0.13,n:"매일 대기전력 차단",s:"KEA"}]:[{a:"Buy less clothing",k:25,n:"5 fewer items/yr (~5kg/item)",s:"Nature Clim. Change 2018"},{a:"Less video streaming",k:18,n:"1hr less/day (HD)",s:"IEA 2022"},{a:"Smaller TV",k:15,n:"65→43 inch (~36kWh/yr)",s:"Energy Star"},{a:"Refuse plastic bags",k:12,n:"1/day",s:"Zero Waste Europe"},{a:"Recycle plastics",k:12,n:"1 item/day",s:"EPA"},{a:"Use tumbler",k:9.9,n:"1 cup/day",s:"UNEP 2021"},{a:"Turn off lights (1hr)",k:9.1,n:"1hr/day",s:"KEA"},{a:"Reduce printing",k:5.5,n:"10 sheets/wk → digital",s:"Two Sides 2020"},{a:"AI usage (ChatGPT)",k:0.7,n:"10 queries/day",s:"Ritchie 2025"},{a:"Unplug chargers",k:0.13,n:"Daily standby cut",s:"KEA"}];
+const cmps=lang==="ko"?[{s:"비닐봉지 1년 거절",sk:12,b:"소고기 소비 절반",bk:bfHkg,bi:"🥩"},{s:"텀블러 1년 사용",sk:10,b:"냉방 +1°C",bk:Math.abs(c1C),bi:"❄️"},{s:"전등끄기 1년",sk:9,b:"난방 −1°C",bk:Math.abs(h1C),bi:"🌡️"},{s:"충전기 빼기 1년",sk:0.13,b:"자동차 10km",bk:d10,bi:"🚗"}]:[{s:"Refuse bags 1yr",sk:12,b:"Halve beef",bk:bfHkg,bi:"🥩"},{s:"Tumbler 1yr",sk:10,b:"Cooling +1°C",bk:Math.abs(c1C),bi:"❄️"},{s:"Lights off 1yr",sk:9,b:"Heating −1°C",bk:Math.abs(h1C),bi:"🌡️"},{s:"Unplug 1yr",sk:0.13,b:"Drive 10km",bk:d10,bi:"🚗"}];
+// Offset tiers
+const KW=1350;
+const tiers=lang==="ko"?[{nm:"산림 보전 (REDD+)",ds:"기존 산림 벌채 방지",$:6,dr:"10–50년",tr:1,ic:"🌳",nt:"저가이지만 추가성 논란"},{nm:"재생에너지 인증서 (REC)",ds:"풍력·태양광 1MWh = 1 REC",$:8,dr:"간접",tr:1,ic:"☀️",nt:"배출 회피 (제거 아님). Scope 2 상쇄. Green-e 인증"},{nm:"조림·재조림 (ARR)",ds:"신규 나무 심기 · Gold Standard",$:22,dr:"50–100년",tr:2,ic:"🌱",nt:"생태계·지역사회 공동이익"},{nm:"그린수소 프로젝트",ds:"재생에너지 전해조 수소 생산 지원",$:15,dr:"간접",tr:2,ic:"⚡",nt:"탄소 제거가 아닌 화석연료 대체. 산업 탈탄소화 기여"},{nm:"바이오차 (Biochar)",ds:"바이오매스 열분해 → 탄소 고정",$:164,dr:"100–1,000년",tr:3,ic:"🔥",nt:"내구성 높음. MS·JPMorgan 대량 구매"},{nm:"촉진풍화 (ERW)",ds:"현무암 분쇄 → 토양 CO₂ 광물화",$:200,dr:"10,000년+",tr:3,ic:"🪨",nt:"토양 건강 개선 부수효과. MRV 발전 중"},{nm:"직접공기포집 (DAC)",ds:"공기 CO₂ 회수 → 지중 저장",$:500,dr:"10,000년+",tr:4,ic:"⚙️",nt:"가장 확실하나 고비용. Climeworks, Heirloom"}]:[{nm:"Forest Conservation (REDD+)",ds:"Avoided deforestation",$:6,dr:"10–50yr",tr:1,ic:"🌳",nt:"Low cost but additionality concerns"},{nm:"Renewable Energy Certificate (REC)",ds:"Wind/solar 1MWh = 1 REC",$:8,dr:"Indirect",tr:1,ic:"☀️",nt:"Avoidance not removal. Scope 2. Green-e certified"},{nm:"Reforestation (ARR)",ds:"Tree planting · Gold Standard",$:22,dr:"50–100yr",tr:2,ic:"🌱",nt:"Ecosystem & community co-benefits"},{nm:"Green Hydrogen Projects",ds:"Support renewable electrolysis H₂",$:15,dr:"Indirect",tr:2,ic:"⚡",nt:"Fossil fuel displacement. Industrial decarbonization"},{nm:"Biochar",ds:"Biomass pyrolysis → carbon lock-in",$:164,dr:"100–1,000yr",tr:3,ic:"🔥",nt:"High durability. MS, JPMorgan buyers"},{nm:"Enhanced Rock Weathering",ds:"Basalt → soil CO₂ mineralization",$:200,dr:"10,000yr+",tr:3,ic:"🪨",nt:"Soil health co-benefits. MRV improving"},{nm:"Direct Air Capture (DAC)",ds:"Air CO₂ → geological storage",$:500,dr:"10,000yr+",tr:4,ic:"⚙️",nt:"Most reliable, expensive. Climeworks, Heirloom"}];
+const trLb=lang==="ko"?["","중","중상","상","최상"]:["","Medium","Med-High","High","Highest"];
+const trCo=["",C.tm,C.wn,C.or,C.ac];
+const fK=v=>v>=10000000?`${(v/10000).toFixed(0)}만`:v>=100000?`${(v/10000).toFixed(1)}만`:`${(v/10000).toFixed(1)}만`;
+// ═══ RENDER ═══
+return <div style={{minHeight:"100vh",background:C.bg,color:C.tx,fontFamily:"'Inter','Pretendard',-apple-system,sans-serif",maxWidth:480,margin:"0 auto",position:"relative"}}>
+<style>{gStyle}</style>
+{/* STICKY HEADER */}
+<div style={{position:"sticky",top:0,zIndex:100,background:`linear-gradient(180deg,${C.bg}f5 80%,${C.bg}00)`,backdropFilter:"blur(12px)",padding:"10px 14px 12px",borderBottom:`1px solid ${C.bd}44`}}>
+<div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:7}}>
+<div style={{display:"flex",alignItems:"center",gap:7}}>
+<div style={{width:22,height:22,borderRadius:6,background:`linear-gradient(135deg,${C.ac},${C.ad})`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:17,fontWeight:700,color:C.bg}}>C</div>
+<span style={{fontSize:18,fontWeight:700}}>{t.nm}</span>
+</div>
+<button onClick={toggleLang} style={{background:C.sf,border:`1px solid ${C.bd}`,borderRadius:5,padding:"3px 8px",fontSize:14,fontWeight:600,color:C.tm,cursor:"pointer"}}>{lang==="ko"?"EN":"한국어"}</button>
+</div>
+<div style={{display:"flex",alignItems:"flex-end",gap:9,marginBottom:6}}>
+<div style={{fontSize:54,fontWeight:700,fontFamily:"'JetBrains Mono',monospace",lineHeight:1,color:total>13?C.dn:total>10?C.wn:C.ac}}>{total.toFixed(1)}</div>
+<div style={{paddingBottom:2}}><div style={{fontSize:15,color:C.tm}}>{t.tpy}</div><div style={{fontSize:12,color:C.td}}>{t.fp}</div></div>
+</div>
+<div style={{display:"flex",gap:4}}>
+{[[t.vK,dK],[t.vW,dG]].map(([lb,d],i)=>(<div key={i} style={{flex:1,padding:"4px 7px",borderRadius:6,background:d>0?`${C.dn}10`:`${C.ac}10`,border:`1px solid ${(d>0?C.dd:C.ad)}33`,display:"flex",justifyContent:"space-between",alignItems:"center"}}><span style={{fontSize:12,color:C.tm}}>{lb}</span><span style={{fontSize:15,fontWeight:700,fontFamily:"'JetBrains Mono',monospace",color:d>0?C.dn:C.ac}}>{d>0?"+":""}{d.toFixed(1)}t</span></div>))}
+</div></div>
+<div style={{padding:"10px 12px 94px",opacity:an?1:0,transform:an?"none":"translateY(4px)",transition:"opacity 0.15s,transform 0.15s"}}>
+{/* ═══ OVERVIEW ═══ */}
+{tab==="ov"&&<div>
+<div style={{background:C.cd,border:`1px solid ${C.bd}`,borderRadius:13,padding:"13px",marginBottom:10}}>
+<div style={{fontSize:14,color:C.td,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:9}}>{t.cmp}</div>
+{[{l:t.wrld,v:BM.global,c:C.bu},{l:t.kr,v:BM.korea,c:C.wn},{l:t.me,v:total,c:total>BM.korea?C.dn:C.ac,mine:true}].map((x,i)=><div key={i} style={{display:"flex",alignItems:"center",gap:7,marginBottom:4}}>
+<div style={{width:60,fontSize:15,color:x.mine?C.tx:C.td,fontWeight:x.mine?600:400,textAlign:"right"}}>{x.l}</div>
+<div style={{flex:1,height:14,background:C.sf,borderRadius:3,overflow:"hidden"}}><div style={{width:`${Math.min(x.v/mx*100,100)}%`,height:"100%",borderRadius:3,background:x.mine?`linear-gradient(90deg,${x.c}cc,${x.c})`:`${x.c}55`,boxShadow:x.mine?`0 0 10px ${x.c}33`:"none",transition:"width 0.5s"}}/></div>
+<div style={{width:38,fontSize:17,fontWeight:600,fontFamily:"'JetBrains Mono',monospace",color:x.mine?x.c:C.tm,textAlign:"right"}}>{x.v.toFixed(1)}</div>
+</div>)}
+</div>
+{/* Sector breakdown */}
+<div style={{background:C.cd,border:`1px solid ${C.bd}`,borderRadius:13,padding:"13px 15px",marginBottom:10}}>
+<div style={{fontSize:17,fontWeight:600,color:C.tx,marginBottom:3}}>{t.sect}</div>
+<div style={{fontSize:14,color:C.td,marginBottom:5}}>{t.sectD}</div>
+<div style={{padding:"6px 9px",background:C.sf,borderRadius:7,marginBottom:10,fontSize:14,color:C.tm,lineHeight:1.5}}>{t.sectI(pT,pH,pD,pA)}<br/><span style={{fontSize:12,color:C.td}}>{t.sectS}</span></div>
+<SR icon="🚗" label={t.tr} mine={transport*1000} avg={bTr*1000} maxVal={sMax} color={C.ac} reduction={rTr} t={t}/>
+<SR icon="🏠" label={t.ho} mine={housing*1000} avg={bHo*1000} maxVal={sMax} color={C.wn} reduction={rHo} t={t}/>
+<SR icon="✈️" label={t.av} mine={avi*1000} avg={AVG_AVI*1000} maxVal={sMax} color={C.pu} reduction={rAv} t={t}/>
+<SR icon="🥩" label={t.di} mine={diet*1000} avg={bDi*1000} maxVal={sMax} color={C.pk} reduction={rDi} t={t}/>
+<div style={{marginTop:6,padding:"5px 9px",background:C.sf,borderRadius:6,display:"flex",justifyContent:"space-between",alignItems:"center"}}><span style={{fontSize:14,color:C.td}}>{t.inf}</span><span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:17,color:C.tm}}>6.0t</span></div>
+</div>
+{/* National Impact — GREEN for reduction, RED for increase */}
+{(()=>{const clr=isRed?C.ac:C.dn;const bg2=isRed?C.ag:C.dg;const bd2=isRed?C.ad:C.dd;
+return <div style={{background:`linear-gradient(135deg,${C.cd},${bg2})`,border:`1px solid ${bd2}44`,borderRadius:13,padding:"14px 15px"}}>
+<div style={{display:"flex",alignItems:"center",gap:5,marginBottom:6}}>
+<span style={{fontSize:21}}>🇰🇷</span>
+<span style={{fontSize:18,fontWeight:700,color:clr}}>{isRed?t.myRed(totRed.toFixed(2)):t.myInc(absRed.toFixed(2))}</span>
+</div>
+<div style={{fontSize:15,color:C.tm,lineHeight:1.6,marginBottom:8}}>{t.allK(BM.pop)}</div>
+<div style={{display:"flex",alignItems:"flex-end",gap:6,marginBottom:6}}>
+<div style={{fontSize:48,fontWeight:700,fontFamily:"'JetBrains Mono',monospace",lineHeight:1,color:clr}}>{isRed?"":"+"}{natPct.toFixed(1)}%</div>
+<div style={{paddingBottom:3}}>
+<div style={{fontSize:15,color:C.tm}}>{isRed?t.natR:t.natI}</div>
+<div style={{fontSize:12,color:C.td}}>{isRed?"":"+​"}{natMt.toFixed(1)} Mt / {BM.natMt} Mt</div>
+</div></div>
+<Bar v={natPct} mx={20} c={clr} h={7}/>
+<div style={{marginTop:8,fontSize:14,color:C.td,lineHeight:1.5}}>
+{t.ndc(BM.ndc18,BM.ndcT)}
+{isRed&&<><br/>{t.ndcC(ndcGap.toFixed(0),natMt.toFixed(1),(natMt/ndcGap*100).toFixed(1))}</>}
+{!isRed&&<><br/>{t.adj}</>}
+</div></div>})()}
+</div>}
+{/* ═══ MY DATA ═══ */}
+{tab==="my"&&<div>
+<div style={{fontSize:11,color:C.td,marginBottom:9,lineHeight:1.5}}>{t.init}</div>
+<Sec title={t.tr} icon="🚗" kg={transport*1000} dkg={(transport-bTr)*1000}>
+<Sl label={t.aKm} value={totalKm} onChange={sKm} min={0} max={40000} step={500} unit="km" info={t.hKm}/>
+<div style={{marginBottom:10}}><label style={{fontSize:14,color:C.tm,display:"block",marginBottom:3}}>{t.fuel}</label>
+<select value={fuelType} onChange={e=>hFT(e.target.value)}><option value="gasoline">{t.gas} — {EF.gasoline} kgCO₂/L</option><option value="diesel">{t.dsl} — {EF.diesel} kgCO₂/L</option><option value="ev">{t.ev} — {EF.grid} kgCO₂/kWh</option></select>
+<div style={{fontSize:10,color:C.td,marginTop:3}}>{t.hFuel}</div></div>
+<Sl label={isEV?t.evE:t.fe} value={fuelEff} onChange={sFE} min={isEV?3:5} max={isEV?9:20} step={0.5} unit={isEV?"km/kWh":"km/L"} info={t.hFE}/>
+<Sl label={t.pass} value={carUsers} onChange={sCU} min={1} max={5} step={1} unit={lang==="ko"?"명":""} info={t.hPass}/>
+</Sec>
+<Sec title={t.ho} icon="🏠" kg={housing*1000} dkg={(housing-bHo)*1000}>
+<Sl label={t.hhS} value={hh} onChange={sHH} min={1} max={6} step={1} unit={lang==="ko"?"명":""} info={t.hHH}/>
+<Sl label={t.py} value={py} onChange={sPy} min={10} max={60} step={1} unit="평" info={`≈${(py*3.3).toFixed(0)}m² — ${t.hPy}`}/>
+<div style={{borderTop:`1px solid ${C.bd}`,margin:"6px 0",paddingTop:6}}><div style={{fontSize:12,color:C.wn,fontWeight:600,marginBottom:5}}>{t.ht}</div></div>
+<Sl label={t.hTm} value={hT} onChange={sHT} min={18} max={26} step={1} unit="°C" info={t.hHT(heating>0?(h1C/heating/10).toFixed(1):"7")}/>
+<Sl label={t.hMo} value={hMo} onChange={sHMo} min={3} max={7} step={1} unit={t.mo} info={t.hHMo}/>
+<div style={{borderTop:`1px solid ${C.bd}`,margin:"6px 0",paddingTop:6}}><div style={{fontSize:12,color:C.bu,fontWeight:600,marginBottom:5}}>{t.cl}</div></div>
+<Sl label={t.cTm} value={cT} onChange={sCT} min={22} max={30} step={1} unit="°C" info={t.hCT(elec>0?(Math.abs(c1C)/elec/10).toFixed(1):"10")}/>
+<Sl label={t.cMo} value={cMo} onChange={sCMo} min={1} max={5} step={1} unit={t.mo} info={t.hCMo}/>
+<div style={{borderTop:`1px solid ${C.bd}`,margin:"6px 0",paddingTop:6}}><div style={{fontSize:12,color:C.pk,fontWeight:600,marginBottom:5}}>{t.hw}</div></div>
+<Sl label={t.shw} value={shw} onChange={sShw} min={0} max={14} step={1} unit={t.pw} info={t.hShw}/>
+</Sec>
+<Sec title={t.av} icon="✈️" kg={avi*1000} dkg={(avi-AVG_AVI)*1000}>
+<div style={{fontSize:11,color:C.td,marginBottom:6}}>{t.avA((AVG_AVI*1000).toFixed(0))}</div>
+{flights.map(f=><div key={f.id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"6px 10px",background:C.sf,borderRadius:7,marginBottom:3,border:`1px solid ${C.bd}`}}><div><div style={{fontSize:14,color:C.tx}}>{f.route}</div><div style={{fontSize:11,color:C.td}}>{t.rt}{f.trips}{lang==="ko"?"회":""} — <span style={{color:C.pu,fontWeight:600}}>{(cFl(f.route,f.trips)*1000).toFixed(0)}kg</span></div></div><button onClick={()=>sFl(fs=>fs.filter(x=>x.id!==f.id))} style={{background:`${C.dn}18`,border:`1px solid ${C.dd}44`,borderRadius:4,color:C.dn,fontSize:12,padding:"2px 6px",cursor:"pointer"}}>✕</button></div>)}
+<div style={{padding:"9px",background:C.sf,borderRadius:8,border:`1px solid ${C.bd}`,marginTop:flights.length?6:0}}>
+<select value={nfR} onChange={e=>sNR(e.target.value)} style={{marginBottom:5}}>{Object.entries(FL).map(([r,d])=><option key={r} value={r}>{r} ({d.d.toLocaleString()}km)</option>)}</select>
+<div style={{display:"flex",gap:6,alignItems:"flex-end"}}><div style={{flex:1}}><label style={{fontSize:10,color:C.td}}>{t.pyr}</label><select value={nfT} onChange={e=>sNT(parseInt(e.target.value))}>{[1,2,3,4,5,6].map(n=><option key={n} value={n}>{n}{lang==="ko"?"회":""}</option>)}</select></div><button onClick={()=>sFl(f=>[...f,{route:nfR,trips:nfT,id:Date.now()}])} style={{background:C.ac,color:C.bg,border:"none",borderRadius:6,padding:"7px 13px",fontWeight:700,fontSize:14,cursor:"pointer"}}>{t.add}</button></div></div>
+</Sec>
+<Sec title={t.meat} icon="🥩" kg={diet*1000} dkg={(diet-bDi)*1000}>
+<div style={{fontSize:11,color:C.tm,marginBottom:8,padding:"4px 7px",background:C.sf,borderRadius:5}}>{t.mB}</div>
+<Sl label={t.bf} value={bK} onChange={sBK} min={0} max={2} step={0.05} unit="kg/wk" info={`${EF.beef} kgCO₂e/kg — ${t.hBf}`}/>
+<Sl label={t.pk} value={pK} onChange={sPK} min={0} max={2} step={0.05} unit="kg/wk" info={`${EF.pork} kgCO₂e/kg — ${t.hPk}`}/>
+<Sl label={t.ck} value={cK} onChange={sCK} min={0} max={2} step={0.05} unit="kg/wk" info={`${EF.chicken} kgCO₂e/kg — ${t.hCk}`}/>
+</Sec>
+<div style={{padding:"12px",background:C.sf,borderRadius:10,border:`1px solid ${C.bd}`}}>
+<div style={{fontSize:11,color:C.td,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:8}}>{t.src}</div>
+{[["CO₂","Worldometer 2022 (12.3t) · GCP 2023 (4.7t)"],[lang==="ko"?"전력":"Grid","Climate Transparency 2022 — 411g/kWh"],[lang==="ko"?"도시가스":"Gas","IPCC 2.1 kgCO₂/Nm³"],["NDC","2030: 727→436 Mt"]].map(([l,s],i)=><div key={i} style={{marginBottom:3}}><span style={{fontSize:11,color:C.ac,fontWeight:600}}>{l}: </span><span style={{fontSize:10,color:C.td}}>{s}</span></div>)}
+</div></div>}
+{/* ═══ LEVERS ═══ */}
+{tab==="lv"&&<div>
+<div style={{padding:"10px 12px",background:C.sf,borderRadius:10,border:`1px solid ${C.bd}`,marginBottom:10,textAlign:"center"}}><span style={{fontSize:14,color:C.ac,fontWeight:700}}>{t.lvT}</span><span style={{fontSize:12,color:C.td}}> {t.lvS}</span></div>
+{levers.map((x,i)=><div key={i} style={{background:C.cd,border:`1px solid ${C.bd}`,borderRadius:11,padding:"11px 13px",marginBottom:6,animation:"fi 0.25s ease-out both",animationDelay:`${i*40}ms`}}>
+<div style={{display:"flex",justifyContent:"space-between"}}><div><div style={{display:"flex",alignItems:"center",gap:5,marginBottom:2}}><span style={{fontSize:17}}>{x.i}</span><span style={{fontSize:14,fontWeight:600}}>{x.l}</span></div><div style={{fontSize:11,color:C.td}}>{x.d}</div></div><div style={{textAlign:"right",minWidth:58}}><div style={{fontSize:21,fontWeight:700,fontFamily:"'JetBrains Mono',monospace",color:x.s>1?C.ac:x.s>0.3?C.wn:C.tm}}>−{(x.s*1000).toFixed(0)}</div><div style={{fontSize:10,color:C.td}}>kg/yr</div></div></div><div style={{marginTop:5}}><Bar v={x.s} mx={levers[0]?.s||0.1} c={x.c}/></div></div>)}
+</div>}
+{/* ═══ SMALL STEPS ═══ */}
+{tab==="ns"&&<div>
+<div style={{padding:"14px 12px",background:`linear-gradient(135deg,${C.ad}22,${C.cd})`,borderRadius:13,border:`1px solid ${C.ad}44`,marginBottom:10,textAlign:"center"}}><div style={{fontSize:16,fontWeight:700,marginBottom:2}}>{t.ssT}</div><div style={{fontSize:12,color:C.tm}}>{t.ssS}</div></div>
+<div style={{fontSize:12,color:C.tm,margin:"4px 0 8px 2px"}}>{t.ssD}</div>
+{steps.map((x,i)=>{const pct=total>0?(x.k/(total*1000)*100):0;return <div key={i} style={{padding:"8px 10px",background:C.cd,borderRadius:8,marginBottom:4,border:`1px solid ${C.bd}`}}>
+<div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:2}}>
+<span style={{fontSize:14,color:C.tx}}>{x.a}</span>
+<div style={{display:"flex",alignItems:"center",gap:5}}>
+<span style={{fontSize:14,fontWeight:700,fontFamily:"'JetBrains Mono',monospace",color:C.ac}}>{x.k>=1?x.k.toFixed(0):x.k.toFixed(1)}kg</span>
+<span style={{fontSize:10,fontWeight:600,fontFamily:"'JetBrains Mono',monospace",color:C.td,background:C.sf,padding:"1px 4px",borderRadius:3}}>{pct.toFixed(pct<0.01?3:2)}%</span>
+</div></div>
+<div style={{display:"flex",justifyContent:"space-between",fontSize:10,color:C.td}}><span>{x.n}</span><span>{x.s}</span></div>
+</div>})}
+<div style={{fontSize:12,color:C.tm,margin:"14px 0 8px 2px"}}>{t.ssB}</div>
+{cmps.map((x,i)=>{const mult=x.sk>0?(x.bk/x.sk):0;return <div key={i} style={{marginBottom:8,padding:"10px",background:C.cd,borderRadius:10,border:`1px solid ${C.bd}`}}>
+<div style={{display:"flex",alignItems:"stretch",gap:6}}>
+<div style={{flex:1,textAlign:"center",padding:"8px 5px",background:C.sf,borderRadius:7}}>
+<div style={{fontSize:10,color:C.td,marginBottom:3}}>{t.sL}</div>
+<div style={{fontSize:11,color:C.tm,marginBottom:3}}>{x.s}</div>
+<div style={{fontSize:18,fontWeight:700,fontFamily:"'JetBrains Mono',monospace",color:C.tm}}>{x.sk.toFixed(x.sk<1?2:0)}kg</div></div>
+<div style={{display:"flex",flexDirection:"column",justifyContent:"center",alignItems:"center",minWidth:32}}>
+<div style={{fontSize:10,fontWeight:700,color:C.ac,background:C.ag,borderRadius:4,padding:"2px 4px"}}>{mult>=1?`×${mult.toFixed(0)}`:`1/${(1/mult).toFixed(0)}`}</div></div>
+<div style={{flex:1,textAlign:"center",padding:"8px 5px",background:`${C.ac}0c`,borderRadius:7,border:`1px solid ${C.ad}33`}}>
+<div style={{fontSize:10,color:C.ac,marginBottom:3}}>{x.bi} {t.bL}</div>
+<div style={{fontSize:11,color:C.ac,marginBottom:3}}>{x.b}</div>
+<div style={{fontSize:18,fontWeight:700,fontFamily:"'JetBrains Mono',monospace",color:C.ac}}>{x.bk.toFixed(x.bk<1?1:0)}kg</div></div>
+</div></div>})}
+<div style={{padding:"10px 12px",background:`${C.ac}0a`,borderRadius:10,border:`1px solid ${C.ad}22`,marginTop:6}}>
+<div style={{fontSize:12,color:C.tm,lineHeight:1.6}}>{t.ssM} <strong style={{color:C.ac}}>{t.ssA}</strong></div></div>
+</div>}
+{/* ═══ OFFSET ═══ */}
+{tab==="of"&&(()=>{const aR=Math.max(0,bTot-total);return <div>
+<div style={{padding:"14px 12px",background:`linear-gradient(135deg,${C.bu}15,${C.cd})`,borderRadius:13,border:`1px solid ${C.bu}33`,marginBottom:10}}>
+<div style={{fontSize:16,fontWeight:700,marginBottom:4,color:C.tx}}>{t.oT}</div>
+<div style={{fontSize:12,color:C.tm,lineHeight:1.6}}>{t.oD}</div></div>
+<div style={{background:C.cd,border:`1px solid ${C.bd}`,borderRadius:13,padding:"12px 14px",marginBottom:10}}>
+<div style={{fontSize:12,color:C.wn,fontWeight:600,marginBottom:6}}>{t.oP}</div>
+<div style={{fontSize:12,color:C.tm,lineHeight:1.6,marginBottom:8}}>{t.oPD}</div>
+<div style={{display:"flex",gap:6}}>
+<div style={{flex:1,padding:"8px",background:C.sf,borderRadius:7,textAlign:"center"}}><div style={{fontSize:10,color:C.td,marginBottom:2}}>{t.ctrl}</div><div style={{fontSize:24,fontWeight:700,fontFamily:"'JetBrains Mono',monospace",color:C.tx}}>{ctrl.toFixed(1)}<span style={{fontSize:12,color:C.td}}>t</span></div></div>
+{aR>0.01&&<div style={{flex:1,padding:"8px",background:C.ag,borderRadius:7,textAlign:"center",border:`1px solid ${C.ad}33`}}><div style={{fontSize:10,color:C.ac,marginBottom:2}}>{t.aRd}</div><div style={{fontSize:24,fontWeight:700,fontFamily:"'JetBrains Mono',monospace",color:C.ac}}>{aR.toFixed(1)}<span style={{fontSize:12,color:C.ad}}>t</span></div></div>}
+</div></div>
+<div style={{fontSize:12,color:C.tm,margin:"4px 0 8px 2px"}}>{t.oC}</div>
+{tiers.map((tr,i)=>{const cu=tr.$*ctrl,kw=cu*KW;return <div key={i} style={{background:C.cd,border:`1px solid ${C.bd}`,borderRadius:11,padding:"11px 13px",marginBottom:6,animation:"fi 0.25s ease-out both",animationDelay:`${i*40}ms`}}>
+<div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:5}}>
+<div><div style={{display:"flex",alignItems:"center",gap:4,marginBottom:2}}><span style={{fontSize:17}}>{tr.ic}</span><span style={{fontSize:14,fontWeight:600,color:C.tx}}>{tr.nm}</span></div><div style={{fontSize:11,color:C.td}}>{tr.ds}</div></div>
+<div style={{textAlign:"right",minWidth:48}}><div style={{fontSize:11,color:C.td}}>$/tCO₂</div><div style={{fontSize:19,fontWeight:700,fontFamily:"'JetBrains Mono',monospace",color:tr.$>100?C.or:tr.$>20?C.wn:C.tm}}>{tr.$}</div></div></div>
+<div style={{padding:"5px 7px",background:C.sf,borderRadius:5,marginBottom:5}}>
+<div style={{fontSize:10,color:C.td}}>{t.allO(ctrl.toFixed(1))}</div>
+<div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}><span style={{fontSize:14,fontWeight:700,fontFamily:"'JetBrains Mono',monospace",color:C.tx}}>₩{fK(kw)}</span><span style={{fontSize:12,color:C.td}}>${cu.toFixed(0)}</span></div></div>
+<div style={{display:"flex",justifyContent:"space-between",fontSize:10}}><span style={{color:C.td}}>{t.dur}: {tr.dr}</span><span style={{color:trCo[tr.tr],fontWeight:600}}>{t.tru}: {trLb[tr.tr]}</span></div>
+<div style={{fontSize:10,color:C.td,marginTop:3,fontStyle:"italic"}}>{tr.nt}</div>
+</div>})}
+{/* Portfolio */}
+<div style={{background:C.cd,border:`1px solid ${C.ad}33`,borderRadius:13,padding:"12px 14px",marginBottom:10}}>
+<div style={{fontSize:12,color:C.ac,fontWeight:600,marginBottom:6}}>{t.pfT}</div>
+<div style={{fontSize:11,color:C.tm,lineHeight:1.6,marginBottom:8}}>{t.pfD(ctrl.toFixed(1))}</div>
+{(()=>{const a=ctrl*0.7,b=ctrl*0.3,cu2=a*22+b*164,ck=cu2*KW;return <div style={{display:"flex",gap:6}}>
+<div style={{flex:1,padding:"8px",background:C.sf,borderRadius:7}}><div style={{fontSize:10,color:C.td,marginBottom:2}}>🌱 ARR 70%</div><div style={{fontSize:12,color:C.tm}}>{a.toFixed(1)}t×$22</div><div style={{fontSize:14,fontWeight:600,fontFamily:"'JetBrains Mono',monospace"}}>${(a*22).toFixed(0)}</div></div>
+<div style={{flex:1,padding:"8px",background:C.sf,borderRadius:7}}><div style={{fontSize:10,color:C.td,marginBottom:2}}>🔥 Biochar 30%</div><div style={{fontSize:12,color:C.tm}}>{b.toFixed(1)}t×$164</div><div style={{fontSize:14,fontWeight:600,fontFamily:"'JetBrains Mono',monospace"}}>${(b*164).toFixed(0)}</div></div>
+<div style={{flex:1,padding:"8px",background:C.ag,borderRadius:7,border:`1px solid ${C.ad}33`}}><div style={{fontSize:10,color:C.ac,marginBottom:2}}>{t.tot}</div><div style={{fontSize:17,fontWeight:700,fontFamily:"'JetBrains Mono',monospace",color:C.ac}}>₩{fK(ck)}</div><div style={{fontSize:10,color:C.td}}>${cu2.toFixed(0)}</div></div>
+</div>})()}</div>
+{/* Limits */}
+<div style={{background:C.cd,border:`1px solid ${C.bd}`,borderRadius:13,padding:"12px 14px",marginBottom:10}}>
+<div style={{fontSize:12,color:C.wn,fontWeight:600,marginBottom:6}}>{t.oLim}</div>
+<div style={{fontSize:11,color:C.tm,lineHeight:1.7}}><strong style={{color:C.tx}}>{t.oL1}</strong></div>
+<div style={{fontSize:11,color:C.tm,lineHeight:1.7,marginTop:5}}>{t.oL2}</div>
+<div style={{fontSize:11,color:C.tm,lineHeight:1.7,marginTop:5}}><strong style={{color:C.tx}}>{t.oL3}</strong></div></div>
+{/* Sources */}
+<div style={{padding:"10px 12px",background:C.sf,borderRadius:10,border:`1px solid ${C.bd}`}}>
+<div style={{fontSize:11,color:C.td,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:6}}>{t.oSrc}</div>
+{[["REDD+ $6","Sylvera 2025"],["REC $8","Green-e / EPA"],["ARR $22","MSCI ARR Index 2025"],["Green H₂ $15","IRENA 2024"],["Biochar $164","Sylvera 2025"],["ERW $200","Senken 2025"],["DAC $500","BCG 2024 · Climeworks"],["Gold Standard","goldstandard.org"],["Climeworks","climeworks.com"],["Patch","patch.io"],[lang==="ko"?"환율":"FX","$1 ≈ ₩"+KW]].map(([l,s],i)=><div key={i} style={{marginBottom:3}}><span style={{fontSize:11,color:C.ac,fontWeight:600}}>{l}: </span><span style={{fontSize:10,color:C.td}}>{s}</span></div>)}
+</div></div>})()}
+</div>
+{/* TAB BAR */}
+<div style={{position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",width:"100%",maxWidth:480,zIndex:100}}>
+<div style={{height:12,background:`linear-gradient(transparent,${C.bg})`}}/>
+<div style={{display:"flex",justifyContent:"space-around",background:C.sf,borderTop:`1px solid ${C.bd}`,padding:"5px 0 8px"}}>
+{TABS.map(tb=><button key={tb.id} onClick={()=>sw(tb.id)} style={{background:"none",border:"none",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:1,color:tab===tb.id?C.ac:C.td,padding:"3px 8px"}}><span style={{fontSize:18,transform:tab===tb.id?"scale(1.15)":"scale(1)",transition:"transform 0.2s"}}>{tb.i}</span><span style={{fontSize:11,fontWeight:tab===tb.id?600:400}}>{tb.l}</span></button>)}
+</div></div>
+</div>}
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(React.createElement(App));
+</script>
+</body>
+</html>
